@@ -1,15 +1,16 @@
 % Define symbolic variables for theta values
+% syms --> symbolic variables using Symbolic Math Toolbox
 syms th1 th2 th3 th4 th5 th6 th7
 syms d1 d3 d5 
 syms L4  L7 
 % Define DH parameters [a, d, alpha, theta]
 dh_matrix = [0, d1, 0, th1;          % theta1
              0, 0, -pi/2, th2;          % theta2
-             0, d3, pi/2, 0;          % theta3
+             0, d3, pi/2, th3;          % theta3
              L4, 0, pi/2, th4;     % theta4
-             -L4, d5, -pi/2, 0;   % theta5
-             0, 0, pi/2, 0.75;           % theta6
-             L7, 0, pi/2, 0];         % theta7
+             -L4, d5, -pi/2, th5;   % theta5
+             0, 0, pi/2, th6;           % theta6
+             L7, 0, pi/2, th7];         % theta7
 
 % DH transformation function
 function A = dh_transform(a, d, alpha, theta)
@@ -17,8 +18,7 @@ function A = dh_transform(a, d, alpha, theta)
     A = [cos(theta), -sin(theta)*cos(alpha), sin(theta)*sin(alpha), a*cos(theta);
          sin(theta), cos(theta)*cos(alpha), -cos(theta)*sin(alpha), a*sin(theta);
          0, sin(alpha), cos(alpha), d;
-         0, 0, 0, 1];
-end
+         0, 0, 0, 1]; %endensures that the transformation matrix is a homogeneous transformation matrix
 
 % Compute individual transformation matrices A_i from frame i-1 to frame i
 A_matrices = cell(1, 7); % Cell array to store each A_i matrix
@@ -70,6 +70,7 @@ fprintf('End-Effector Transformation Matrix T_7^0:\n');
 disp(T_endeff);
 
 % Check if the end-effector transformation matches the last T matrix
+%If the difference between the two matrices is zero (checked symbolically), the result is correct.
 if simplify(T_endeff - T_matrices{7}) == sym(zeros(4))  % Compare the symbolic difference
     disp('Correct! The transformation matches.');
 else
