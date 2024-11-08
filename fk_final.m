@@ -1,8 +1,7 @@
 % Define symbolic variables for theta values
-% syms --> symbolic variables using Symbolic Math Toolbox
 syms th1 th2 th3 th4 th5 th6 th7
 syms d1 d3 d5 
-syms L4  L7 
+syms L4 L7 
 % Define DH parameters [a, d, alpha, theta]
 dh_matrix = [0, d1, 0, th1;          % theta1
              0, 0, -pi/2, th2;          % theta2
@@ -12,13 +11,32 @@ dh_matrix = [0, d1, 0, th1;          % theta1
              0, 0, pi/2, th6;           % theta6
              L7, 0, pi/2, th7];         % theta7
 
-% DH transformation function
+% DH transformation function with Craig's method
 function A = dh_transform(a, d, alpha, theta)
-    % DH transformation matrix
-    A = [cos(theta), -sin(theta)*cos(alpha), sin(theta)*sin(alpha), a*cos(theta);
-         sin(theta), cos(theta)*cos(alpha), -cos(theta)*sin(alpha), a*sin(theta);
-         0, sin(alpha), cos(alpha), d;
-         0, 0, 0, 1]; %endensures that the transformation matrix is a homogeneous transformation matrix
+    % Compute each transformation step according to Craig's method
+    Rx_alpha = [1, 0, 0, 0;
+                0, cos(alpha), -sin(alpha), 0;
+                0, sin(alpha), cos(alpha), 0;
+                0, 0, 0, 1];
+                
+    Dx_a = [1, 0, 0, a;
+            0, 1, 0, 0;
+            0, 0, 1, 0;
+            0, 0, 0, 1];
+            
+    Rz_theta = [cos(theta), -sin(theta), 0, 0;
+                sin(theta), cos(theta), 0, 0;
+                0, 0, 1, 0;
+                0, 0, 0, 1];
+                
+    Dz_d = [1, 0, 0, 0;
+            0, 1, 0, 0;
+            0, 0, 1, d;
+            0, 0, 0, 1];
+    
+    % Combine transformations in the order specified by Craig's method
+    A = Rx_alpha * Dx_a * Rz_theta * Dz_d;
+end
 
 % Compute individual transformation matrices A_i from frame i-1 to frame i
 A_matrices = cell(1, 7); % Cell array to store each A_i matrix
@@ -70,10 +88,8 @@ fprintf('End-Effector Transformation Matrix T_7^0:\n');
 disp(T_endeff);
 
 % Check if the end-effector transformation matches the last T matrix
-%If the difference between the two matrices is zero (checked symbolically), the result is correct.
 if simplify(T_endeff - T_matrices{7}) == sym(zeros(4))  % Compare the symbolic difference
     disp('Correct! The transformation matches.');
 else
     disp('Fail! The transformation does not match.');
 end
-
